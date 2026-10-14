@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sprint Walkthrough</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout concept: a long, chronological worksheet. Sticky step index on the left, one section per step: theory, instructions, copy blocks, checkpoint. */
+:root {
+  --bg: #f3f7f6;
+  --surface: #ffffff;
+  --ink: #10242b;
+  --muted: #4b6068;
+  --line: #d3dedc;
+  --accent: #0f766e;
+  --accent-ink: #ffffff;
+  --accent-soft: #e2f1ef;
+  --code-bg: #eaf2f1;
+  --note-bg: #fdf3d8;
+  --note-ink: #6b4708;
+  --bad: #b8431f;
+  --good: #1f7a4d;
+  --s-todo: #5b6c8f;
+  --s-prog: #f59e0b;
+  --s-review: #a9c5c2;
+  --s-test: #0f766e;
+  --s-done: #2f9e6b;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b181c; --surface: #11252b; --ink: #e5f0ef; --muted: #9db3b1; --line: #25414a;
+    --accent: #34d1c0; --accent-ink: #052e2a; --accent-soft: #123a3a; --code-bg: #0c1e23;
+    --note-bg: #35290a; --note-ink: #f6d58a; --bad: #f0916e; --good: #5fd39a;
+    --s-review: #6f918e; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b181c; --surface: #11252b; --ink: #e5f0ef; --muted: #9db3b1; --line: #25414a;
+  --accent: #34d1c0; --accent-ink: #052e2a; --accent-soft: #123a3a; --code-bg: #0c1e23;
+  --note-bg: #35290a; --note-ink: #f6d58a; --bad: #f0916e; --good: #5fd39a;
+  --s-review: #6f918e; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.55; padding-inline: 16px; padding-block: 0 64px; }
+a { color: var(--accent); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin-inline: auto; }
+
+/* header */
+.top { padding-block: 28px 20px; display: grid; gap: 14px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--font-display); font-size: clamp(30px, 5vw, 48px); line-height: 1.05; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+.lede { max-width: 62ch; margin: 0; color: var(--muted); font-size: 17px; }
+.cols { display: flex; flex-wrap: wrap; gap: 8px; }
+.col-chip { font-size: 13px; font-weight: 600; padding: 5px 12px; border-radius: 6px; color: #fff; }
+.col-chip.c1 { background: var(--s-todo); } .col-chip.c2 { background: var(--s-prog); color: #1a1405; } .col-chip.c3 { background: var(--s-review); color: #0b1f22; } .col-chip.c4 { background: var(--s-test); } .col-chip.c5 { background: var(--s-done); }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 10px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.track { flex: 1 1 200px; height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.fill { height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+.count { font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 12px; cursor: pointer; font-size: 14px; font-weight: 500; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.menu-btn { display: none; }
+
+/* layout */
+.layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 32px; padding-top: 24px; align-items: start; }
+nav.index { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 66px); max-height: calc(100vh - 90px); overflow: auto; font-size: 14px; padding-right: 4px; }
+nav.index h2 { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 18px 0 6px; font-weight: 500; }
+nav.index h2:first-child { margin-top: 0; }
+nav.index a { display: flex; gap: 8px; align-items: baseline; padding: 5px 8px; border-radius: 6px; text-decoration: none; color: var(--ink); }
+nav.index a:hover { background: var(--accent-soft); }
+nav.index a.active { background: var(--accent-soft); font-weight: 600; }
+nav.index a .n { font-family: var(--font-mono); font-size: 12px; color: var(--muted); min-width: 22px; font-variant-numeric: tabular-nums; }
+nav.index a.done .n::after { content: " ✓"; color: var(--good); }
+main { display: grid; gap: 20px; min-width: 0; }
+.phase { font-family: var(--font-display); font-size: 26px; margin: 18px 0 -4px; }
+.phase small { display: block; font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 400; margin-bottom: 2px; }
+
+/* step */
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 16px; scroll-margin-top: 80px; min-width: 0; }
+.step-head { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; }
+.num { font-family: var(--font-display); font-size: 15px; font-weight: 700; background: var(--accent); color: var(--accent-ink); border-radius: 8px; min-width: 36px; height: 36px; display: grid; place-items: center; padding-inline: 8px; font-variant-numeric: tabular-nums; }
+.step h3 { font-family: var(--font-display); font-size: 24px; line-height: 1.15; margin: 0; flex: 1 1 200px; text-wrap: balance; }
+.tag { font-family: var(--font-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 5px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.donebtn { margin-left: auto; }
+.donebtn[aria-pressed="true"] { background: var(--good); color: #fff; border-color: var(--good); }
+.label { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+.theory { background: var(--accent-soft); border-radius: 10px; padding: 14px 16px; }
+.theory p { margin: 0 0 8px; max-width: 68ch; }
+.theory p:last-child { margin: 0; }
+ol.do { margin: 0; padding-left: 22px; display: grid; gap: 8px; max-width: 72ch; }
+ol.do li::marker { color: var(--accent); font-weight: 600; }
+ul.plain { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 72ch; }
+.ui { font-weight: 600; background: var(--code-bg); border-radius: 4px; padding: 0 5px; white-space: nowrap; }
+.copy { display: flex; gap: 10px; align-items: stretch; margin-top: 8px; min-width: 0; }
+.copy .cl { font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
+.copy .cbody { flex: 1 1 auto; min-width: 0; }
+.copy code { display: block; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; font-family: var(--font-mono); font-size: 13.5px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.copy .btn { align-self: flex-end; flex: none; }
+.copies { display: grid; gap: 4px; }
+.check { border: 1px dashed var(--accent); border-radius: 10px; padding: 10px 14px; display: flex; gap: 10px; align-items: baseline; }
+.check b { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.note { background: var(--note-bg); color: var(--note-ink); border-radius: 10px; padding: 10px 14px; font-size: 14.5px; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--font-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+td.num2, th.num2 { text-align: right; font-variant-numeric: tabular-nums; }
+.pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 99px; color: #fff; }
+.pill.todo { background: var(--s-todo); } .pill.prog { background: var(--s-prog); color: #1a1405; } .pill.rev { background: var(--s-review); color: #0b1f22; } .pill.test { background: var(--s-test); } .pill.done { background: var(--s-done); } .pill.out { background: var(--line); color: var(--ink); }
+
+/* widgets */
+.widget { border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 12px; background: var(--bg); min-width: 0; }
+.widget h4 { margin: 0; font-family: var(--font-display); font-size: 17px; }
+.cards { display: flex; flex-wrap: wrap; gap: 8px; }
+.pcard { width: 56px; height: 76px; border: 2px solid var(--accent); border-radius: 8px; background: var(--surface); font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--accent); cursor: pointer; }
+.pcard[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.chk { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); cursor: pointer; min-width: 0; }
+.chk input { width: 18px; height: 18px; accent-color: var(--accent); flex: none; }
+.chk .pts { margin-left: auto; font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+.chk span.t { min-width: 0; overflow-wrap: anywhere; }
+.meter { height: 16px; background: var(--line); border-radius: 99px; overflow: hidden; position: relative; }
+.meter > i { display: block; height: 100%; background: var(--accent); transition: width .2s; }
+.meter.over > i { background: var(--bad); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.tile .v { font-family: var(--font-display); font-size: 34px; line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; }
+.tile .k { font-size: 13px; color: var(--muted); margin-top: 4px; }
+svg.chart { width: 100%; height: auto; max-width: 560px; display: block; }
+svg.chart text { fill: var(--muted); font-family: var(--font-body); font-size: 11px; }
+svg.chart .grid { stroke: var(--line); stroke-width: 1; }
+svg.chart .ideal { stroke: var(--s-todo); stroke-width: 2.5; stroke-dasharray: 6 5; fill: none; }
+svg.chart .actual { stroke: var(--accent); stroke-width: 3; fill: none; }
+svg.chart .dot { fill: var(--accent); }
+svg.chart .dot2 { fill: var(--s-todo); }
+svg.chart .cursor { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 2 3; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.verdict { margin-left: auto; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px; color: #fff; }
+.verdict.ok { background: var(--good); } .verdict.no { background: var(--bad); }
+.review { display: grid; gap: 10px; }
+.rv { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 10px 12px; display: grid; gap: 6px; }
+.rv header { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.rv header b { font-size: 15px; }
+.rv ul { margin: 0; padding-left: 20px; font-size: 14px; color: var(--muted); }
+.retro { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.retro .rc { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: grid; gap: 8px; align-content: start; }
+.retro h5 { margin: 0; font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+.retro h5.s1 { color: var(--good); } .retro h5.s2 { color: var(--bad); } .retro h5.s3 { color: var(--accent); }
+.retro ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.retro li { background: var(--code-bg); border-radius: 6px; padding: 6px 8px; font-size: 14px; display: flex; gap: 6px; justify-content: space-between; align-items: flex-start; }
+.retro li button { border: 0; background: none; cursor: pointer; color: var(--muted); padding: 0 4px; }
+.retro input[type=text], .field input { width: 100%; font: inherit; font-size: 14px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--ink); }
+.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+dl.gloss { margin: 0; display: grid; grid-template-columns: minmax(110px, 160px) 1fr; gap: 6px 14px; font-size: 15px; }
+dl.gloss dt { font-weight: 600; } dl.gloss dd { margin: 0; color: var(--muted); }
+.foot { margin-top: 28px; color: var(--muted); font-size: 14px; }
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  nav.index { display: none; position: static; max-height: none; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+  nav.index.open { display: block; }
+  .menu-btn { display: inline-block; }
+  .retro { grid-template-columns: minmax(0, 1fr); }
+  .step { padding: 16px; }
+  dl.gloss { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  dl.gloss dd { margin-bottom: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { .fill, .meter > i { transition: none; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Seminar 2 · Agile/Scrum &amp; Software Project Tracking</div>
+    <h1>Run a Scrum sprint on a GitHub Project board</h1>
+    <p class="lede">Follow the steps in order. Each one starts with a short note on what is going on, then tells you exactly what to click and what to paste. You can build your own board alongside us, or just read along and watch ours.</p>
+    <div class="cols" aria-label="The five board columns">
+      <span class="col-chip c1">To Do</span><span class="col-chip c2">In Progress</span><span class="col-chip c3">Code Review</span><span class="col-chip c4">Testing</span><span class="col-chip c5">Done</span>
+    </div>
+  </header>
+  <div class="bar" role="region" aria-label="Progress">
+    <button class="btn menu-btn" id="menuBtn" aria-expanded="false" aria-controls="index">Steps</button>
+    <div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="22" aria-valuenow="0" id="pb"><div class="fill" id="fill"></div></div>
+    <div class="count" id="count">0 / 22 done</div>
+    <button class="btn" id="reset">Reset</button>
+  </div>
+  <div class="layout">
+    <nav class="index" id="index" aria-label="Steps"></nav>
+    <main id="main"></main>
+  </div>
+  <p class="foot">GitHub changes its menus now and then. If a button is not where a step says, trust what you see on screen and look for the same word nearby. Your ticks, names and retro notes are saved in this browser only.</p>
+</div>
+
+<script>
+(function () {
+  var KEY = "sprint-walkthrough-v1";
+  var S = { done: {}, roles: {}, cap: {}, met: {}, rev: {}, retro: { s1: [], s2: [], s3: [] } };
+  try { var raw = localStorage.getItem(KEY); if (raw) { var p = JSON.parse(raw); for (var k in S) if (p[k] !== undefined) S[k] = p[k]; } } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+  var STORIES = [
+    { id: "login", t: "Log in with college email", pts: 5, story: "As a student, I want to log in with my college email, so that I can register for events.", ac: ["A student can sign in with a college email address.", "A non-college email is rejected with a clear message."], why: "Everything else depends on it." },
+    { id: "register", t: "Register for an event", pts: 5, story: "As a student, I want to register for an event, so that I get a seat.", ac: ["A logged-in student can register for an event.", "The remaining seat count goes down by one."], why: "The core value of the app." },
+    { id: "browse", t: "Browse upcoming events", pts: 3, story: "As a student, I want to browse upcoming events, so that I can pick ones I like.", ac: ["The list shows upcoming events with name and date.", "Past events are not shown."], why: "Students need to find an event." },
+    { id: "email", t: "Email confirmation", pts: 3, story: "As a student, I want an email confirmation, so that I have proof of registration.", ac: ["An email is sent within one minute of registering.", "It includes the event name, date and venue."], why: "Proof of registration." },
+    { id: "create", t: "Create an event", pts: 5, story: "As an organizer, I want to create an event, so that students can sign up.", ac: ["An organizer can enter a name, date, venue and capacity.", "The event appears in the browse list."], why: "Events are loaded in directly this sprint." },
+    { id: "attend", t: "Attendee list", pts: 3, story: "As an organizer, I want to see the attendee list, so that I can plan.", ac: ["The list shows each registered student's name.", "The count matches the number of registrations."], why: "Organizers can wait." },
+    { id: "search", t: "Search events by date", pts: 2, story: "As a student, I want to search events by date, so that I can find ones I can attend.", ac: ["Choosing a date shows only events on that date.", "If none exist, a \"no events\" message appears."], why: "Nice to have." }
+  ];
+  var QR = { id: "qr", t: "QR check-in", pts: 3, story: "As an event organizer, I want students to get a QR code when they register, so that I can check them in at the door.", ac: ["A QR code appears after registering.", "Scanning it shows the student's name and event."] };
+  var GOAL = "Let students discover college events and register from their phones, and let organizers see who is coming.";
+  var SPRINT_GOAL = "A student can log in, browse events, register, and be told it worked.";
+  var CAPACITY = 16;
+  function acText(s) { return "Acceptance criteria\n" + s.ac.map(function (a) { return "- " + a; }).join("\n"); }
+  function ui(t) { return '<span class="ui">' + t + '</span>'; }
+
+  var COPIES = [];
+  function copyBlock(label, text, multi) {
+    COPIES.push(text);
+    return '<div class="copy"><div class="cbody"><div class="cl">' + label + '</div><code>' + esc(text) + '</code></div><button class="btn" data-copy="' + (COPIES.length - 1) + '">Copy</button></div>';
+  }
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  /* ---------- widgets ---------- */
+  var W = {};
+  W.gloss = function () {
+    var d = [["Agile", "Build in small pieces, show them early, adjust from feedback."], ["Scrum", "A framework for working in Agile: fixed-length sprints with set roles and meetings."], ["Sprint", "A short fixed period (1 to 4 weeks) that ends with a working piece of the product."], ["Product Backlog", "The ordered wish list of everything the product might need."], ["User story", "A requirement written as: As a [user], I want [feature], so that [benefit]."], ["Story points", "A relative size for a story (1, 2, 3, 5, 8, 13). Not hours."], ["Sprint Backlog", "The stories the team commits to finish in this sprint."], ["Daily Scrum", "A check-in of 15 minutes or less: done, doing next, blocked."], ["Sprint Review", "The team shows finished work and the Product Owner accepts or rejects it."], ["Retrospective", "The team talks about how it worked and what to change."]];
+    return '<dl class="gloss">' + d.map(function (x) { return "<dt>" + x[0] + "</dt><dd>" + x[1] + "</dd>"; }).join("") + "</dl>";
+  };
+  W.roles = function () {
+    var r = [["role-po", "Product Owner", "Decides what is built and in what order"], ["role-sm", "Scrum Master", "Runs the meetings and removes blockers"], ["role-dev", "Developers", "Build the work (three people)"]];
+    return '<div class="widget"><h4>Write down who plays what</h4><div class="fields">' + r.map(function (x) {
+      return '<div class="field"><label for="' + x[0] + '">' + x[1] + '</label><input type="text" id="' + x[0] + '" data-role="' + x[0] + '" placeholder="' + x[2] + '" value="' + esc(S.roles[x[0]] || "") + '"></div>';
+    }).join("") + "</div></div>";
+  };
+  W.poker = function () {
+    return '<div class="widget"><h4>Try a round: how big is "Email confirmation"?</h4><p style="margin:0">Pick a card, then see how the discussion goes. Nobody reveals until everyone has chosen.</p><div class="cards" id="pcards">' +
+      [1, 2, 3, 5, 8, 13].map(function (n) { return '<button class="pcard" data-poker="' + n + '" aria-pressed="false">' + n + "</button>"; }).join("") +
+      '</div><div id="pout" class="note" aria-live="polite">Pick a card to see what the team would say.</div></div>';
+  };
+  W.cap = function () {
+    var total = 0;
+    var rows = STORIES.map(function (s, i) {
+      var on = S.cap[s.id] === undefined ? i < 4 : S.cap[s.id];
+      if (on) total += s.pts;
+      return '<label class="chk"><input type="checkbox" data-cap="' + s.id + '"' + (on ? " checked" : "") + '><span class="t">' + s.t + '</span><span class="pts">' + s.pts + " pts</span></label>";
+    }).join("");
+    var pct = Math.min(100, Math.round(total / CAPACITY * 100));
+    var msg = total === CAPACITY ? "Exactly at capacity. This is the sprint we commit to." : total > CAPACITY ? "Over capacity by " + (total - CAPACITY) + " points. Remove a story." : (CAPACITY - total) + " points of room left.";
+    return '<div class="widget" id="capw"><h4>Fit the sprint into ' + CAPACITY + ' points</h4><div style="display:grid;gap:6px">' + rows + '</div><div class="meter' + (total > CAPACITY ? " over" : "") + '"><i style="width:' + pct + '%"></i></div><div class="row"><b style="font-variant-numeric:tabular-nums">' + total + " / " + CAPACITY + " points</b><span>" + msg + "</span></div></div>";
+  };
+  var IDEAL = [16, 12.8, 9.6, 6.4, 3.2, 0], ACTUAL = [16, 16, 16, 13, 8, 3];
+  var DAYNOTE = ["Day 0: 16 points committed, nothing started.", "Day 1: work has started, nothing is Done yet, so the line stays flat.", "Day 2: still flat. Cards are in progress, review or testing.", "Day 3: Browse is Done (-3). QR came in and Email went out, so no net jump.", "Day 4: Login is Done (-5). 8 points left.", "Day 5: Register is Done (-5). Only QR check-in is left: 3 points."];
+  W.chart = function () {
+    var L = 40, R = 520, T = 14, B = 236;
+    function x(d) { return L + (R - L) * d / 5; }
+    function y(v) { return B - (B - T) * v / 18; }
+    var grid = [0, 6, 12, 18].map(function (v) { return '<line class="grid" x1="' + L + '" x2="' + R + '" y1="' + y(v) + '" y2="' + y(v) + '"/><text x="' + (L - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + v + "</text>"; }).join("");
+    var xt = [0, 1, 2, 3, 4, 5].map(function (d) { return '<text x="' + x(d) + '" y="' + (B + 18) + '" text-anchor="middle">' + d + "</text>"; }).join("");
+    function pts(a) { return a.map(function (v, d) { return x(d) + "," + y(v); }).join(" "); }
+    var svg = '<svg class="chart" viewBox="0 0 540 270" role="img" aria-label="Burndown chart: ideal line falls from 16 to 0 points, actual line ends at 3 points on day 5">' + grid + xt +
+      '<text x="' + ((L + R) / 2) + '" y="264" text-anchor="middle">Sprint day</text><text x="12" y="' + ((T + B) / 2) + '" transform="rotate(-90 12 ' + ((T + B) / 2) + ')" text-anchor="middle">Story points remaining</text>' +
+      '<polyline class="ideal" points="' + pts(IDEAL) + '"/><polyline class="actual" points="' + pts(ACTUAL) + '"/>' +
+      '<line class="cursor" id="ccur" x1="' + x(0) + '" x2="' + x(0) + '" y1="' + T + '" y2="' + B + '"/><circle class="dot" id="cdot" cx="' + x(0) + '" cy="' + y(16) + '" r="5.5"/><circle class="dot2" id="cdot2" cx="' + x(0) + '" cy="' + y(16) + '" r="4"/></svg>';
+    return '<div class="widget"><h4>Burndown for our sprint</h4>' + svg + '<label for="dayr" style="font-weight:600">Move through the sprint: day <output id="dayo">0</output></label><input type="range" id="dayr" min="0" max="5" step="1" value="0"><div class="tiles"><div class="tile"><div class="v" id="cact">16</div><div class="k">actual points left</div></div><div class="tile"><div class="v" id="cid">16</div><div class="k">ideal points left</div></div></div><div class="note" id="cnote" aria-live="polite">' + DAYNOTE[0] + '</div></div>';
+    };
+  W.chartInit = function () {
+    var r = document.getElementById("dayr"); if (!r) return;
+    var L = 40, R = 520, T = 14, B = 236;
+    function x(d) { return L + (R - L) * d / 5; } function y(v) { return B - (B - T) * v / 18; }
+    r.addEventListener("input", function () {
+      var d = +r.value;
+      document.getElementById("dayo").textContent = d;
+      var cur = document.getElementById("ccur"); cur.setAttribute("x1", x(d)); cur.setAttribute("x2", x(d));
+      var a = document.getElementById("cdot"), b = document.getElementById("cdot2");
+      a.setAttribute("cx", x(d)); a.setAttribute("cy", y(ACTUAL[d])); b.setAttribute("cx", x(d)); b.setAttribute("cy", y(IDEAL[d]));
+      document.getElementById("cact").textContent = ACTUAL[d]; document.getElementById("cid").textContent = IDEAL[d];
+      document.getElementById("cnote").textContent = DAYNOTE[d];
+    });
+  };
+  var SPRINT_ITEMS = [STORIES[0], STORIES[1], STORIES[2], QR];
+  function metState(id) { return S.met[id] === undefined ? id !== "qr" : S.met[id]; }
+  function revState(id) { return S.rev[id] === undefined ? id !== "qr" : S.rev[id]; }
+  W.met = function () {
+    var rows = SPRINT_ITEMS.map(function (s) {
+      return '<label class="chk"><input type="checkbox" data-met="' + s.id + '"' + (metState(s.id) ? " checked" : "") + '><span class="t">' + s.t + " is in the Done column</span><span class=\"pts\">" + s.pts + " pts</span></label>";
+    }).join("");
+    return '<div class="widget" id="metw"><h4>Tick what is Done on your board</h4><div style="display:grid;gap:6px">' + rows + '</div><div class="tiles" id="mtiles"></div></div>';
+  };
+  W.metCalc = function () {
+    var done = SPRINT_ITEMS.filter(function (s) { return metState(s.id); });
+    var vel = done.reduce(function (a, s) { return a + s.pts; }, 0);
+    var t = document.getElementById("mtiles"); if (!t) return;
+    t.innerHTML = '<div class="tile"><div class="v">' + vel + '</div><div class="k">velocity: points finished</div></div><div class="tile"><div class="v">' + done.length + " / " + (SPRINT_ITEMS.length - done.length) + '</div><div class="k">completed / pending stories</div></div><div class="tile"><div class="v">' + Math.round(vel / CAPACITY * 100) + '%</div><div class="k">of the ' + CAPACITY + '-point commitment</div></div><div class="tile"><div class="v">' + (CAPACITY - vel) + '</div><div class="k">burndown: points left</div></div>';
+  };
+  W.rev = function () {
+    return '<div class="widget" id="revw"><h4>Be the Product Owner: accept or reject</h4><div class="review">' + SPRINT_ITEMS.map(function (s) {
+      var ok = revState(s.id);
+      return '<div class="rv"><header><b>' + s.t + '</b><span class="verdict ' + (ok ? "ok" : "no") + '" id="v-' + s.id + '">' + (ok ? "Accepted" : "Not accepted") + '</span></header><ul>' + s.ac.map(function (a) { return "<li>" + a + "</li>"; }).join("") + '</ul><label class="chk"><input type="checkbox" data-rev="' + s.id + '"' + (ok ? " checked" : "") + '><span class="t">Every criterion is met</span></label></div>';
+    }).join("") + '</div><p style="margin:0;font-size:14px;color:var(--muted)">In our demo, QR check-in shows a code but scanning it does not show the student\'s name, so it is rejected.</p></div>';
+  };
+  W.retro = function () {
+    var cols = [["s1", "Start"], ["s2", "Stop"], ["s3", "Continue"]];
+    return '<div class="widget"><h4>Add a note to each column</h4><div class="retro">' + cols.map(function (c) {
+      return '<div class="rc"><h5 class="' + c[0] + '">' + c[1] + '</h5><ul id="rl-' + c[0] + '"></ul><input type="text" id="ri-' + c[0] + '" data-retro="' + c[0] + '" placeholder="Type a note, press Enter" aria-label="' + c[1] + ' note"></div>';
+    }).join("") + '</div></div>';
+  };
+  W.retroDraw = function () {
+    ["s1", "s2", "s3"].forEach(function (k) {
+      var ul = document.getElementById("rl-" + k); if (!ul) return;
+      ul.innerHTML = S.retro[k].map(function (t, i) { return "<li><span>" + esc(t) + '</span><button data-rdel="' + k + ":" + i + '" aria-label="Remove note">×</button></li>'; }).join("");
+    });
+  };
+  W.final = function () {
+    var acc = SPRINT_ITEMS.filter(function (s) { return revState(s.id); });
+    var vel = acc.reduce(function (a, s) { return a + s.pts; }, 0);
+    var ret = SPRINT_ITEMS.filter(function (s) { return !revState(s.id); });
+    var next = ret.map(function (s) { return s.t; }).concat(["Email confirmation", "Create an event", "Attendee list", "Search events by date"]);
+    return '<div class="widget" id="finw"><h4>Where the project ended up</h4><div class="tiles"><div class="tile"><div class="v">' + acc.length + '</div><div class="k">stories accepted</div></div><div class="tile"><div class="v">' + vel + '</div><div class="k">points completed (velocity)</div></div><div class="tile"><div class="v">' + ret.length + '</div><div class="k">returned to the backlog</div></div><div class="tile"><div class="v">1</div><div class="k">deferred by the change (Email)</div></div></div><p style="margin:0"><b>Top of the backlog for Sprint 2:</b> ' + next.join(", ") + ".</p></div>";
+  };
+
+  /* ---------- steps ---------- */
+  var P = { A: "Get ready", B: "Plan the work", C: "Run the sprint", D: "Track and review" };
+  var STEPS = [
+    { p: "A", tag: "Theory", title: "What Agile and Scrum are", theory: ["Traditional projects (Waterfall) plan everything, build everything and deliver once at the end. If the customer's needs change or were misunderstood, you find out very late, when fixing it is expensive.", "Agile is the answer: build in small pieces, show each one, get feedback, adjust. Scrum is a popular recipe for doing it. The work runs in sprints, and a few roles, meetings and lists keep the team in step. Project tracking (the board you are about to build) is how everyone sees where the work stands."], widget: "gloss", check: "You can explain what a sprint is in one sentence." },
+    { p: "A", tag: "Setup", title: "Choose the Scrum roles", theory: ["Scrum has three roles. The Product Owner speaks for the customer and decides what gets built first. The Scrum Master coaches the process and clears blockers; they are not the boss. The Developers decide how to build it and do the work."], widget: "roles", check: "Every person on the team has one role." },
+    { p: "A", tag: "GitHub", title: "Create the project", theory: ["A GitHub Project is a table of work items with a board view on top. It is where the backlog, the sprint and the progress will all live. Creating it is the first piece of project tracking."], steps: ["Go to " + '<a href="https://github.com" target="_blank" rel="noopener">github.com</a>' + " and sign in (or sign up, it is free).", "Click your profile picture, then " + ui("Your projects") + ", then " + ui("New project") + ".", "Choose the " + ui("Board") + " template (or " + ui("Table") + " if that is all you see) and name it as below.", "Click " + ui("Create project") + "."], copies: [["Project name", "Event App Sprint"]], check: "You see a board with a few empty columns." },
+    { p: "A", tag: "GitHub", title: "Make the five columns", theory: ["The columns of the board come from one field called Status. Each option of that field becomes a column, and a card moves left to right as work advances. Our workflow has five stages: work not started, being built, being checked by a teammate, being tested, and finished."], steps: ["Switch the view to " + ui("Table") + " (see the next step if you need to add one).", "On the " + ui("Status") + " header, open its menu (arrow or " + ui("⋯") + ") and choose " + ui("Edit field") + " or " + ui("Field settings") + ".", "Make the options exactly these five, in this order. Rename " + ui("Todo") + " to " + ui("To Do") + " and use " + ui("Add option") + " for the rest.", "Save, then go back to the board view."], copies: [["The five options (one per line)", "To Do\nIn Progress\nCode Review\nTesting\nDone"]], tip: "On the board you can also rename a column from its " + ui("⋯") + " menu and add one with the " + ui("+") + " at the far right.", check: "The board shows five columns named To Do, In Progress, Code Review, Testing, Done." },
+    { p: "A", tag: "GitHub", title: "Add a Backlog table view", theory: ["A view is just a different way to look at the same items. The Table view suits planning because you can see and edit the numbers. The Board view suits running the sprint. Both read the same data, so a change in one shows in the other."], steps: ["Click " + ui("+ New view") + " next to the " + ui("View 1") + " tab.", "If it opens as a board, use the arrow on the tab and set the layout to " + ui("Table") + ".", "Double-click the new tab's name and rename it " + ui("Backlog") + ".", "Double-click " + ui("View 1") + " and rename it " + ui("Sprint Board") + "."], copies: [["Tab names", "Backlog\nSprint Board"]], check: "Two tabs: Backlog (rows) and Sprint Board (columns)." },
+    { p: "A", tag: "GitHub", title: "Add Story Points and Sprint fields", theory: ["A field is a column of data on each item. Story Points will hold each story's size. Sprint will use GitHub's Iteration type, which is how GitHub represents a sprint: a named block of dates that items can belong to."], steps: ["Open the " + ui("Backlog") + " tab. Click the " + ui("+") + " at the right end of the column headers.", "Choose " + ui("Create a project field") + " (it may say " + ui("New field") + "). If an " + ui("Add issue fields") + " box appears, click " + ui("Create a project field") + " in it.", "Name it " + ui("Story Points") + " and set the type to " + ui("Number") + ". Save.", "Do it again: name it " + ui("Sprint") + ", type " + ui("Iteration") + ", duration " + ui("1 week") + ". Save."], copies: [["Field name 1", "Story Points"], ["Field name 2", "Sprint"]], check: "The table has Story Points and Sprint columns next to Title and Status." },
+    { p: "B", tag: "Theory + GitHub", title: "State the Product Goal", theory: ["The Product Goal is one sentence on why the product exists. It is the test for the whole backlog: a feature that does not help the goal does not belong. Our small software project is a College Event Registration App."], steps: ["Open the project's " + ui("⋯") + " menu (top right), then " + ui("Settings") + ".", "Paste the goal into the " + ui("Description") + " or " + ui("README") + " box and save.", "If you cannot find that box, skip it. Reading the goal aloud is enough for the exercise."], copies: [["Product Goal", GOAL]], check: "Everyone can read out the goal." },
+    { p: "B", tag: "Theory + GitHub", title: "Create the Product Backlog with user stories", theory: ["The Product Backlog is the master list of everything the product might need. It is never finished. Each item is written as a user story from the user's point of view: As a [user], I want [feature], so that [benefit]. That ties every feature to a real person's need.", "Under each story we add acceptance criteria: the conditions that must be true before the story counts as done. The Product Owner uses them at the Sprint Review."], steps: ["In the " + ui("Backlog") + " tab, click " + ui("+ Add item") + " at the bottom of the table.", "Paste a story title and press " + ui("Enter") + ". Repeat for all seven. If GitHub asks for a repository, pick one (a new empty repo called " + ui("event-app-sprint") + " keeps things tidy) and click " + ui("Create") + ".", "Optional: open a card and paste its acceptance criteria into the description."], widget: "stories", check: "Seven rows in the table." },
+    { p: "B", tag: "Theory + GitHub", title: "Prioritize the backlog", theory: ["Prioritizing means putting the most valuable work at the top. The Product Owner decides the order, because they speak for the customer. Two useful questions: what does everything else depend on, and what delivers the core value? The team always pulls work from the top."], steps: ["In the " + ui("Backlog") + " tab, drag each row (grab it by the row number on the left) into the order below.", "Say the reason out loud as you move each one."], widget: "prio", check: "Login is row 1 and Search is row 7." },
+    { p: "B", tag: "Theory + GitHub", title: "Estimate with story points", theory: ["Story points measure relative size: how much work, how complex, how uncertain. They are not hours. The sequence 1, 2, 3, 5, 8, 13 grows because big tasks are harder to estimate precisely.", "The team estimates together with Planning Poker. Everyone picks a card in secret, all cards are revealed at once, and the highest and lowest voters explain their reasoning before a re-vote. The conversation matters more than the number."], steps: ["Try a round below.", "Then type the agreed points into the " + ui("Story Points") + " cell of each row in the " + ui("Backlog") + " tab."], widget: "poker", after: "pointsTable", check: "Every story has a Story Points value." },
+    { p: "B", tag: "Theory + GitHub", title: "Create and plan the Sprint", theory: ["Sprint Planning is the meeting at the start of a sprint where the team decides what it can realistically finish. The team's capacity is how many points it can complete in one sprint. For a first sprint it is a guess; later it comes from velocity. We pull stories from the top of the backlog until the next one would exceed capacity. That selection is the Sprint Backlog, and one sentence about its purpose is the Sprint Goal.", "A sprint is a promise, not a wish list."], steps: ["Use the checklist below to see which stories fit in " + CAPACITY + " points.", "In the " + ui("Backlog") + " tab, click the " + ui("Sprint") + " cell of Log in, Register, Browse and Email confirmation and choose the current iteration (for example " + ui("Iteration 1") + ").", "Leave the other three rows with an empty Sprint cell. They stay in the Product Backlog."], widget: "cap", copies: [["Sprint Goal", SPRINT_GOAL]], check: "Four stories have a Sprint value and add up to 16 points." },
+    { p: "B", tag: "GitHub", title: "Assign tasks to team members", theory: ["Every sprint story gets an owner, so everyone knows who is responsible. Spread the points evenly: here it is 5, 5 and 6."], steps: ["In the " + ui("Backlog") + " tab, click the " + ui("Assignees") + " cell on each sprint story and pick the owner from the table below.", "You can only assign people who have access to the repository. If someone is missing, add them under the repo's " + ui("Settings") + " then " + ui("Collaborators") + ", or just assign yourself for practice."], widget: "assign", check: "Each of the four sprint stories has an assignee." },
+    { p: "C", tag: "Theory + GitHub", title: "Set up the sprint board", theory: ["Now the work starts. A board is a visual workflow: every piece of work is a card, and each column is a stage. Cards move left to right: In Progress when someone starts, Code Review when a teammate checks it (in real life a pull request), Testing when it is verified against the acceptance criteria, Done when it meets the team's Definition of Done."], steps: ["In the " + ui("Backlog") + " tab, set " + ui("Status") + " to " + ui("To Do") + " on the four sprint stories.", "Open the " + ui("Sprint Board") + " tab. Click the filter bar, paste the filter below and press " + ui("Enter") + ", so only this sprint's cards show.", "If a card sits in a column called " + ui("No Status") + ", set its Status to To Do."], copies: [["Filter for the current sprint", "sprint:@current"]], check: "Four cards in the To Do column." },
+    { p: "C", tag: "Theory + GitHub", title: "Day 1: Daily Scrum and first moves", theory: ["The Daily Scrum is a check-in of 15 minutes or less, once a day, run by the Scrum Master. Each Developer answers three questions: what did I do yesterday, what will I do today, is anything blocking me? Its job is to spot trouble early. The board is on screen, so cards move as people speak."], steps: ["The Scrum Master runs the Daily Scrum. Each Developer answers using the lines below.", "As each person speaks, drag their card from " + ui("To Do") + " to " + ui("In Progress") + ": Log in, Register and Browse events. Leave Email confirmation in To Do."], copies: [["Developer answers, Day 1", "Member 3: Yesterday we planned the sprint. Today I'm starting the login page. No blockers.\nMember 4: Today I'm starting the register flow. No blockers.\nMember 5: Today I'm starting the browse events page. No blockers."]], check: "Three cards in In Progress, one in To Do." },
+    { p: "C", tag: "Theory + GitHub", title: "Day 3: a blocker and cards on the move", theory: ["A blocker is anything stopping progress. Finding one in the first minute of the Daily Scrum is the whole point of the meeting: the Scrum Master takes it and clears it right after, so nobody sits stuck for days. Long discussions are taken offline."], steps: ["Before the meeting, move " + ui("Log in") + " to " + ui("Code Review") + " and " + ui("Browse events") + " to " + ui("Testing") + ". Leave Register in In Progress.", "Run the Daily Scrum with the lines below. Member 4 reports a blocker.", "After the meeting, move " + ui("Browse events") + " to " + ui("Done") + "."], copies: [["Developer answers, Day 3", "Member 3: Login is finished and in Code Review. Today I'll fix any review comments. No blockers.\nMember 5: Browse is finished and in Testing. Today I'll finish testing it. No blockers.\nMember 4: I built most of register, but I'm blocked: I can't finish until login is merged.\nScrum Master: I'll chase the reviewer right after this meeting so Member 4 isn't stuck."]], check: "Log in in Code Review, Register in In Progress, Browse events in Done." },
+    { p: "C", tag: "Theory + GitHub", title: "A requirement changes mid-sprint", theory: ["Scrum welcomes change, but it never comes free. The sprint is full, so new work has to be sized and something of similar size has to leave. The Product Owner decides what leaves. That way the commitment stays realistic. (A change so big that it makes the sprint pointless can cancel the sprint, but that is rare.)", "Today's change: the college now requires QR-code check-in at the door."], steps: ["Product Owner announces the change. The team votes on its size: 3 points.", "In the " + ui("Backlog") + " tab, add a new item with the story below. Set Story Points to " + ui("3") + ", Sprint to the current iteration, Assignee to Member 5, Status to " + ui("To Do") + ".", "Open " + ui("Email confirmation") + " and clear its " + ui("Sprint") + " cell, so it returns to the backlog. The Product Owner's reason: a QR code can stand in as proof of registration."], copies: [["New story", QR.story], ["Acceptance criteria", acText(QR)]], tip: "Check the sprint total is still 16: QR check-in (3) came in, Email confirmation (3) went out.", check: "QR check-in is on the sprint board and Email confirmation is gone from it." },
+    { p: "C", tag: "GitHub", title: "Day 5: finish the sprint", theory: ["By the last day, most cards should be on the right of the board. Anything not Done at the end of the sprint is not counted, even if it is nearly there."], steps: ["Move " + ui("Log in") + " through " + ui("Testing") + " to " + ui("Done") + ".", "Move " + ui("Register") + " (no longer blocked) through " + ui("Code Review") + " and " + ui("Testing") + " to " + ui("Done") + ".", "Move " + ui("QR check-in") + " from To Do to " + ui("In Progress") + " and then " + ui("Testing") + ". Leave it there."], widget: "day5", check: "Three cards in Done, QR check-in in Testing." },
+    { p: "D", tag: "Theory + GitHub", title: "Track sprint progress", theory: ["A burndown chart plots the work remaining (in story points) against the days of the sprint. The dashed line is the ideal: a straight fall to zero. The solid line is reality. If real work is above the ideal line, the team is behind. Work added mid-sprint shows as a step up; ours added 3 and removed 3, so there is no step."], steps: ["Move through the sprint with the slider below.", "In GitHub, click " + ui("Insights") + " at the top right of the project and start a new chart. Group by " + ui("Status") + " with the sum of " + ui("Story Points") + " as the Y axis to see how many points are in each column.", "GitHub's default chart is a burn-up (completed work over time), which shows the same information the other way round. For a true burndown, use the numbers in the table below."], widget: "chart", check: "You can say why the line is flat on days 1 and 2." },
+    { p: "D", tag: "Theory", title: "Read the project metrics", theory: ["Burndown shows points left. Completed vs pending counts the finished and unfinished stories. Sprint progress is points finished out of points committed. Velocity is the number of story points the team really finished in a sprint. Teams plan the next sprint from velocity, not from hope."], widget: "met", check: "Velocity is 13 points and progress is 81%." },
+    { p: "D", tag: "Theory + GitHub", title: "Hold the Sprint Review", theory: ["The Sprint Review is held at the end of the sprint. The team shows what it built (the Increment) to the stakeholders. The Product Owner accepts a story only if it meets its acceptance criteria. Stories that fail go back to the backlog; unfinished work is never hidden."], steps: ["For each story, open its card and read the acceptance criteria.", "Use the checker below as the Product Owner.", "For a rejected story, clear its " + ui("Sprint") + " cell and set Status to " + ui("To Do") + ", so it returns to the Product Backlog."], widget: "rev", check: "Login, Browse and Register accepted; QR check-in returned to the backlog." },
+    { p: "D", tag: "Theory", title: "Run the Retrospective", theory: ["The Review is about what the team built. The Retrospective is about how it worked. Nobody is blamed; the point is to pick one or two improvements for the next sprint. A common format has three columns: Start (what we should begin doing), Stop (what hurts) and Continue (what works).", "Example: Continue \"Daily Scrum caught the login blocker\"; Stop \"Starting stories before checking dependencies\"; Start \"Write acceptance criteria before building\"."], widget: "retro", check: "Each column has at least one note." },
+    { p: "D", tag: "Wrap-up", title: "Show the final status", theory: ["Finish by showing where the project stands: what was accepted, how many points were completed, and what the next sprint starts with. Then the loop begins again: plan, build, review, improve."], steps: ["Open the " + ui("Sprint Board") + " and the " + ui("Insights") + " tab and read the status out.", "Your board now shows the whole cycle: backlog, sprint planning, daily moves, a change, review and retrospective."], widget: "final", check: "You can explain the project's status in two sentences." }
+  ];
+  var STEP_COUNT = STEPS.length;
+
+  function storiesWidget() {
+    return '<div class="widget"><h4>The seven user stories</h4>' + STORIES.map(function (s) {
+      COPIES.push(s.story); var a = COPIES.length - 1; COPIES.push(acText(s)); var b = COPIES.length - 1;
+      return '<div class="copy"><div class="cbody"><div class="cl">' + s.t + ' (' + s.pts + ' pts)</div><code>' + esc(s.story) + '</code></div><div style="display:grid;gap:6px;align-self:flex-end"><button class="btn" data-copy="' + a + '">Copy story</button><button class="btn" data-copy="' + b + '">Copy criteria</button></div></div>';
+    }).join("") + "</div>";
+  }
+  function prioWidget() {
+    return '<div class="table-wrap"><table><thead><tr><th>#</th><th>Story</th><th>Why it ranks here</th></tr></thead><tbody>' + STORIES.map(function (s, i) { return "<tr><td>" + (i + 1) + "</td><td>" + s.t + "</td><td>" + s.why + "</td></tr>"; }).join("") + "</tbody></table></div>";
+  }
+  function pointsTable() {
+    return '<div class="table-wrap"><table><thead><tr><th>Story</th><th class="num2">Story Points</th></tr></thead><tbody>' + STORIES.map(function (s) { return "<tr><td>" + s.t + '</td><td class="num2">' + s.pts + "</td></tr>"; }).join("") + "</tbody></table></div>";
+  }
+  function assignWidget() {
+    var rows = [["Log in", "Developer A (Member 3)", 5], ["Register", "Developer B (Member 4)", 5], ["Browse events", "Developer C (Member 5)", 3], ["Email confirmation", "Developer C (Member 5)", 3]];
+    return '<div class="table-wrap"><table><thead><tr><th>Story</th><th>Owner</th><th class="num2">Points</th></tr></thead><tbody>' + rows.map(function (r) { return "<tr><td>" + r[0] + "</td><td>" + r[1] + '</td><td class="num2">' + r[2] + "</td></tr>"; }).join("") + '</tbody><tfoot><tr><td colspan="2"><b>Load per developer</b></td><td class="num2"><b>5 / 5 / 6</b></td></tr></tfoot></table></div>';
+  }
+  function day5Widget() {
+    var rows = [["Log in", '<span class="pill done">Done</span>'], ["Register", '<span class="pill done">Done</span>'], ["Browse events", '<span class="pill done">Done</span>'], ["QR check-in", '<span class="pill test">Testing</span>'], ["Email confirmation", '<span class="pill out">Back in the backlog</span>']];
+    return '<div class="table-wrap"><table><thead><tr><th>Story</th><th>Status at the end of Day 5</th></tr></thead><tbody>' + rows.map(function (r) { return "<tr><td>" + r[0] + "</td><td>" + r[1] + "</td></tr>"; }).join("") + "</tbody></table></div>";
+  }
+  function burnTable() {
+    return '<div class="table-wrap"><table><thead><tr><th>Day</th><th class="num2">Ideal left</th><th class="num2">Actual left</th></tr></thead><tbody>' + IDEAL.map(function (v, d) { return "<tr><td>" + d + '</td><td class="num2">' + v + '</td><td class="num2">' + ACTUAL[d] + "</td></tr>"; }).join("") + "</tbody></table></div>";
+  }
+
+  function renderStep(s, i) {
+    var n = i + 1, h = '<section class="step" id="s' + n + '" data-step="' + n + '"><div class="step-head"><span class="num">' + n + '</span><h3>' + s.title + '</h3><span class="tag">' + s.tag + '</span><button class="btn donebtn" data-done="' + n + '" aria-pressed="' + (S.done[n] ? "true" : "false") + '">' + (S.done[n] ? "Done ✓" : "Mark done") + "</button></div>";
+    h += '<div class="theory"><div class="label">What is going on</div>' + s.theory.map(function (t) { return "<p>" + t + "</p>"; }).join("") + "</div>";
+    if (s.steps) h += '<div><div class="label">Do this</div><ol class="do">' + s.steps.map(function (t) { return "<li>" + t + "</li>"; }).join("") + "</ol></div>";
+    if (s.copies) h += '<div class="copies">' + s.copies.map(function (c) { return copyBlock(c[0], c[1]); }).join("") + "</div>";
+    if (s.widget === "gloss") h += W.gloss();
+    if (s.widget === "roles") h += W.roles();
+    if (s.widget === "stories") h += storiesWidget();
+    if (s.widget === "prio") h += prioWidget();
+    if (s.widget === "poker") h += W.poker();
+    if (s.after === "pointsTable") h += pointsTable();
+    if (s.widget === "cap") h += W.cap();
+    if (s.widget === "assign") h += assignWidget();
+    if (s.widget === "day5") h += day5Widget();
+    if (s.widget === "chart") h += W.chart() + burnTable();
+    if (s.widget === "met") h += W.met();
+    if (s.widget === "rev") h += W.rev();
+    if (s.widget === "retro") h += W.retro();
+    if (s.widget === "final") h += W.final();
+    if (s.tip) h += '<div class="note">' + s.tip + "</div>";
+    h += '<div class="check"><b>Checkpoint</b><span>' + s.check + "</span></div></section>";
+    return h;
+  }
+
+  function build() {
+    var main = document.getElementById("main"), nav = document.getElementById("index");
+    var mh = "", nh = "", last = "";
+    STEPS.forEach(function (s, i) {
+      if (s.p !== last) { last = s.p; mh += '<div class="phase"><small>Part ' + s.p + "</small>" + P[s.p] + "</div>"; nh += "<h2>" + P[s.p] + "</h2>"; }
+      mh += renderStep(s, i);
+      nh += '<a href="#s' + (i + 1) + '" data-nav="' + (i + 1) + '" class="' + (S.done[i + 1] ? "done" : "") + '"><span class="n">' + (i + 1) + "</span><span>" + s.title + "</span></a>";
+    });
+    main.innerHTML = mh; nav.innerHTML = nh;
+    W.chartInit(); W.metCalc(); W.retroDraw(); progress();
+  }
+  function progress() {
+    var c = 0; for (var i = 1; i <= STEP_COUNT; i++) if (S.done[i]) c++;
+    document.getElementById("fill").style.width = (c / STEP_COUNT * 100) + "%";
+    document.getElementById("count").textContent = c + " / " + STEP_COUNT + " done";
+    var pb = document.getElementById("pb"); pb.setAttribute("aria-valuenow", c); pb.setAttribute("aria-valuemax", STEP_COUNT);
+  }
+  function refresh(id, html) { var e = document.getElementById(id); if (e) { var t = document.createElement("div"); t.innerHTML = html; e.replaceWith(t.firstChild); } }
+
+  var POKER = { 1: "Too small. Sending an email needs a service, a template and failure handling. Someone will say that.", 2: "A quick win if we use a ready-made email service, but it still needs setup and testing.", 3: "A sensible middle: a ready-made service plus setup and failure testing. This is where our team lands.", 5: "Cautious. Plausible if nobody has set up email before. The team will ask what makes it that uncertain.", 8: "High. You are spotting hidden complexity. Explain it to the team, then re-vote.", 13: "Very large. Is it really one story, or should it be split?" };
+
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest("button, a"); if (!t) return;
+    if (t.dataset.copy !== undefined) {
+      var text = COPIES[+t.dataset.copy], orig = t.textContent;
+      function ok() { t.textContent = "Copied"; setTimeout(function () { t.textContent = orig; }, 1400); }
+      function fallback() {
+        var code = t.closest(".copy").querySelector("code"), r = document.createRange(); r.selectNodeContents(code);
+        var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); t.textContent = "Press Ctrl+C"; setTimeout(function () { t.textContent = orig; }, 2200);
+      }
+      try { navigator.clipboard.writeText(text).then(ok, fallback); } catch (err) { fallback(); }
+    } else if (t.dataset.done) {
+      var n = t.dataset.done; S.done[n] = !S.done[n]; save();
+      t.setAttribute("aria-pressed", S.done[n] ? "true" : "false"); t.textContent = S.done[n] ? "Done ✓" : "Mark done";
+      var a = document.querySelector('[data-nav="' + n + '"]'); if (a) a.classList.toggle("done", !!S.done[n]); progress();
+    } else if (t.dataset.poker) {
+      document.querySelectorAll(".pcard").forEach(function (b) { b.setAttribute("aria-pressed", b === t ? "true" : "false"); });
+      document.getElementById("pout").textContent = "You picked " + t.dataset.poker + ". " + POKER[t.dataset.poker];
+    } else if (t.dataset.rdel) {
+      var p = t.dataset.rdel.split(":"); S.retro[p[0]].splice(+p[1], 1); save(); W.retroDraw();
+    } else if (t.id === "reset") {
+      if (t.dataset.armed !== "1") { t.dataset.armed = "1"; t.textContent = "Click again to clear"; setTimeout(function () { t.dataset.armed = ""; t.textContent = "Reset"; }, 3000); return; }
+      t.dataset.armed = ""; t.textContent = "Reset";
+      S = { done: {}, roles: {}, cap: {}, met: {}, rev: {}, retro: { s1: [], s2: [], s3: [] } }; save(); COPIES = []; build();
+    } else if (t.id === "menuBtn") {
+      var nav = document.getElementById("index"), open = nav.classList.toggle("open"); t.setAttribute("aria-expanded", open);
+    } else if (t.dataset.nav) {
+      document.getElementById("index").classList.remove("open"); document.getElementById("menuBtn").setAttribute("aria-expanded", "false");
+    }
+  });
+  document.addEventListener("change", function (e) {
+    var t = e.target;
+    if (t.dataset.cap) { S.cap[t.dataset.cap] = t.checked; save(); refresh("capw", W.cap()); }
+    else if (t.dataset.met) { S.met[t.dataset.met] = t.checked; save(); W.metCalc(); }
+    else if (t.dataset.rev) {
+      S.rev[t.dataset.rev] = t.checked; save();
+      var v = document.getElementById("v-" + t.dataset.rev); v.textContent = t.checked ? "Accepted" : "Not accepted"; v.className = "verdict " + (t.checked ? "ok" : "no");
+      refresh("finw", W.final());
+    }
+  });
+  document.addEventListener("input", function (e) { var t = e.target; if (t.dataset.role) { S.roles[t.dataset.role] = t.value; save(); } });
+  document.addEventListener("keydown", function (e) {
+    var t = e.target;
+    if (e.key === "Enter" && t.dataset && t.dataset.retro && t.value.trim()) { S.retro[t.dataset.retro].push(t.value.trim()); t.value = ""; save(); W.retroDraw(); }
+  });
+
+  build();
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (en) { if (en.isIntersecting) { var n = en.target.dataset.step; document.querySelectorAll("nav.index a").forEach(function (a) { a.classList.toggle("active", a.dataset.nav === n); }); } });
+    }, { rootMargin: "-20% 0px -70% 0px" });
+    document.querySelectorAll(".step").forEach(function (s) { io.observe(s); });
+  }
+})();
+</script>
+
+</body>
+</html>
